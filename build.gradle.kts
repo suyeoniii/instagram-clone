@@ -17,15 +17,22 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	implementation("org.springframework.boot:spring-boot-starter-data-jdbc:2.7.2")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa:2.7.2")
+	implementation("org.springframework.boot:spring-boot-starter-validation:2.7.2")
+	implementation("org.springframework.boot:spring-boot-starter-web:2.7.2")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	runtimeOnly("mysql:mysql-connector-java")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	/* swagger */
+	implementation("org.springdoc:springdoc-openapi-ui:1.6.4")
+	/* jwt */
+	implementation("io.jsonwebtoken:jjwt:0.9.1")
+	/* lombok */
+	implementation("org.projectlombok:lombok:1.18.24")
+
+	runtimeOnly("mysql:mysql-connector-java:8.0.29")
+	testImplementation("org.springframework.boot:spring-boot-starter-test:2.7.2")
 }
 
 tasks.withType<KotlinCompile> {
@@ -38,3 +45,4 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
