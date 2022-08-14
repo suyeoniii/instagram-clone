@@ -24,15 +24,20 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	/* swagger */
-	implementation("org.springdoc:springdoc-openapi-ui:1.6.4")
 	/* jwt */
 	implementation("io.jsonwebtoken:jjwt:0.9.1")
 	/* lombok */
 	implementation("org.projectlombok:lombok:1.18.24")
+	/* secutiry */
+	implementation("org.springframework.boot:spring-boot-starter-security")
+
+	implementation("org.springdoc:springdoc-openapi-data-rest:1.6.9")
+	implementation("org.springdoc:springdoc-openapi-ui:1.6.9")
+	implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
 
 	runtimeOnly("mysql:mysql-connector-java:8.0.29")
 	testImplementation("org.springframework.boot:spring-boot-starter-test:2.7.2")
+
 }
 
 tasks.withType<KotlinCompile> {

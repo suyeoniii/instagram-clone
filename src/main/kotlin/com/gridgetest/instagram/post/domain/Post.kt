@@ -1,14 +1,15 @@
 package com.gridgetest.instagram.post.domain
 
+import com.gridgetest.instagram.config.BaseEntity
+import com.gridgetest.instagram.post.image.domain.PostImage
+import com.gridgetest.instagram.like.domain.PostLike
 import com.gridgetest.instagram.user.domain.User
-import org.hibernate.annotations.CreationTimestamp
-import org.hibernate.annotations.UpdateTimestamp
-import java.time.OffsetDateTime
 import javax.persistence.*
 
 @Entity
-class Post(userId: Int, contents: String, status: PostStatus) {
-    @Id @GeneratedValue
+class Post(contents: String, status: PostStatus, user: User): BaseEntity() {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_id")
     var id: Int? = null
 
@@ -19,15 +20,13 @@ class Post(userId: Int, contents: String, status: PostStatus) {
     @Enumerated(EnumType.STRING)
     var status: PostStatus = status
 
-    @Column(nullable = false)
-    @CreationTimestamp
-    var createdAt: OffsetDateTime? = null
-
-    @Column(nullable = false)
-    @UpdateTimestamp
-    var updatedAt: OffsetDateTime? = null
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    var user: User? = null
+    var user: User? = user
+
+    @OneToMany(mappedBy = "post")
+    var images: List<PostImage> = ArrayList<PostImage>()
+
+    @OneToMany(mappedBy = "post")
+    var likes: List<PostLike> = ArrayList<PostLike>()
 }

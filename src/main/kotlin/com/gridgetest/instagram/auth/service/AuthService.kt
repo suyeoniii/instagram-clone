@@ -10,43 +10,55 @@ import com.gridgetest.instagram.user.domain.User
 import com.gridgetest.instagram.user.repository.UserRepository
 import com.gridgetest.instagram.user.service.UserService
 import com.gridgetest.instagram.util.JwtService
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import javax.persistence.Tuple
 
 @Service
-class AuthService(private val userService: UserService, private val userRepository: UserRepository, private val jwtService: JwtService) {
-    fun signUp(signUpReqDto: SignUpReqDto): SignUpResDto {
-        try {
-            if(userService.existsUser(signUpReqDto.nickname)) throw BaseException(BaseResponseCode.USER_NICKNAME_ALREADY_EXIST)
+class AuthService(
+    private val userService: UserService,
+    private val userRepository: UserRepository,
+    private val jwtService: JwtService,
+    private val passwordEncoder: PasswordEncoder
+) {
+    fun signUp(user: User): SignUpResDto {
+        if (userService.existsUser(user.nickname)) throw BaseException(BaseResponseCode.USER_NICKNAME_ALREADY_EXIST)
 
-            // TODO: 비밀번호 암호화
+        try {
+            user.password = passwordEncoder.encode(user.password)
 
             // DB: insert User
-            val encryptedUser = User(signUpReqDto.nickname, signUpReqDto.username, signUpReqDto.password, signUpReqDto.phoneNumber,
-            signUpReqDto.birth, null, null, null, "E")
-
-            val registeredUser = userRepository.save(encryptedUser)
-
-            // TODO: insert 실패
+            val registeredUser = userRepository.save(user)
+            if (registeredUser === null) throw BaseException(BaseResponseCode.USER_REGISTER_FAILED)
 
             val token = jwtService.createJwt(registeredUser.id!!)
             return SignUpResDto(registeredUser.id, token)
-        }
-        catch(exception: Exception) {
+        } catch (exception: Exception) {
             throw BaseException(BaseResponseCode.INTERNAL_SERVER_ERROR)
         }
     }
 
-    fun login(loginReqDto: LoginReqDto): LoginResDto {
-        // TODO: 비밀번호 암호화
-
-        val loginUser = userRepository.findOneByNicknameAndPassword(loginReqDto.nickname, loginReqDto.password)
-        if(loginUser === null) throw BaseException(BaseResponseCode.USER_LOGIN_FAILED)
+    fun login(nickname: String, password: String): LoginResDto {
+        val user = userRepository.findOneByNickname(nickname)
+        if (user === null || !passwordEncoder.matches(password, user.password)) throw BaseException(BaseResponseCode.USER_LOGIN_FAILED)
 
         try {
-            val token = jwtService.createJwt(loginUser.id!!)
-            return LoginResDto(loginUser.id, token)
+            val token = jwtService.createJwt(user.id!!)
+            return LoginResDto(user.id, token)
+        } catch (exception: Exception) {
+            throw BaseException(BaseResponseCode.INTERNAL_SERVER_ERROR)
         }
-        catch(exception: Exception) {
+    }
+
+    fun updatePassword(userId: Int, password: String): Int {
+        val user: User? = userService.getUserById(userId)
+        if(user === null) throw BaseException(BaseResponseCode.USER_NOT_FOUND)
+
+        user.password = passwordEncoder.encode(password)
+        userRepository.save(user)
+        try {
+            return user.id!!
+        } catch (exception: Exception) {
             throw BaseException(BaseResponseCode.INTERNAL_SERVER_ERROR)
         }
     }

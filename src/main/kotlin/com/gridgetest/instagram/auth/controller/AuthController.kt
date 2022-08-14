@@ -5,10 +5,11 @@ import com.gridgetest.instagram.auth.service.AuthService
 import com.gridgetest.instagram.config.BaseException
 import com.gridgetest.instagram.config.BaseResponse
 import com.gridgetest.instagram.config.BaseResponseCode
-import com.gridgetest.instagram.config.RegExp
+import com.gridgetest.instagram.user.domain.User
 import com.gridgetest.instagram.util.JwtService
-import com.gridgetest.instagram.util.ValidationRegex.isNicknameValid
+import com.gridgetest.instagram.util.ValidationRegex.isNameValid
 import com.gridgetest.instagram.util.ValidationRegex.isPasswordValid
+import com.gridgetest.instagram.util.ValidationRegex.isPhoneNumber
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -17,20 +18,25 @@ class AuthController(private val authService: AuthService, private val jwtServic
     @PostMapping("/sign-up")
     fun signUp(@RequestBody signUpReqDto: SignUpReqDto): BaseResponse<SignUpResDto> {
         try {
-            if (signUpReqDto.username.length < 3 || signUpReqDto.username.length > 20) return BaseResponse(
-                BaseResponseCode.USER_USERNAME_LENGTH
+            if (signUpReqDto.username.isEmpty() || signUpReqDto.username.length > 20) return BaseResponse(
+                BaseResponseCode.USER_USERNAME_INVALID
             )
             if (!isPasswordValid(signUpReqDto.password)) return BaseResponse(
                 BaseResponseCode.USER_PASSWORD_INVALID
             )
-            if (!Regex(RegExp.PHONE).containsMatchIn(signUpReqDto.phoneNumber)) return BaseResponse(
+            if (!isPhoneNumber(signUpReqDto.phoneNumber)) return BaseResponse(
                 BaseResponseCode.USER_PHONE_NUMBER_LENGTH
             )
-            if (!isNicknameValid(signUpReqDto.nickname)) return BaseResponse(
+            if (!isNameValid(signUpReqDto.nickname)) return BaseResponse(
                 BaseResponseCode.USER_NICKNAME_INVALID
             )
 
-            val signUpResult = authService.signUp(signUpReqDto)
+            val user = User(
+                signUpReqDto.nickname, signUpReqDto.username, signUpReqDto.password, signUpReqDto.phoneNumber,
+                signUpReqDto.birth, null, null, null, "E"
+            )
+
+            val signUpResult = authService.signUp(user)
             return BaseResponse(signUpResult)
         } catch (exception: BaseException) {
             throw exception
@@ -40,10 +46,10 @@ class AuthController(private val authService: AuthService, private val jwtServic
     @PostMapping("/login")
     fun login(@RequestBody loginReqDto: LoginReqDto): BaseResponse<LoginResDto> {
         try {
-            if (!isNicknameValid(loginReqDto.nickname)) return BaseResponse(BaseResponseCode.USER_NICKNAME_ALREADY_EXIST)
+            if (!isNameValid(loginReqDto.nickname)) return BaseResponse(BaseResponseCode.USER_NICKNAME_ALREADY_EXIST)
             if (!isPasswordValid(loginReqDto.password)) return BaseResponse(BaseResponseCode.USER_PASSWORD_INVALID)
 
-            val loginResult = authService.login(loginReqDto)
+            val loginResult = authService.login(loginReqDto.nickname, loginReqDto.password)
             return BaseResponse(loginResult)
 
         } catch (exception: BaseException) {
@@ -54,9 +60,23 @@ class AuthController(private val authService: AuthService, private val jwtServic
     @GetMapping("/auto-login")
     fun authLogin(): BaseResponse<AutoLoginResDto> {
         try {
-            val userId = jwtService.userIdx
+            val userId = jwtService.userId
             val autoLoginResDto = AutoLoginResDto(userId)
             return BaseResponse(autoLoginResDto)
+
+        } catch (exception: BaseException) {
+            throw exception
+        }
+    }
+
+    @PatchMapping("/{userId}/password")
+    fun updatePassword(
+        @PathVariable userId: Int,
+        @RequestBody updatePasswordReqDto: UpdatePasswordReqDto
+    ): BaseResponse<UpdatePasswordResDto> {
+        try {
+            val updatedUserId = authService.updatePassword(userId, updatePasswordReqDto.password)
+            return BaseResponse(UpdatePasswordResDto(updatedUserId))
 
         } catch (exception: BaseException) {
             throw exception

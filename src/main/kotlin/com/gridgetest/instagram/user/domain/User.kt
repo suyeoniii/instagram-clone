@@ -1,10 +1,8 @@
 package com.gridgetest.instagram.user.domain
 
+import com.gridgetest.instagram.config.BaseEntity
 import com.gridgetest.instagram.post.domain.Post
-import org.hibernate.annotations.CreationTimestamp
-import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDate
-import java.time.OffsetDateTime
 import javax.persistence.*
 
 @Entity
@@ -18,7 +16,7 @@ class User(
     introduction: String?,
     website: String?,
     loginType: String,
-) {
+): BaseEntity() {
 
     @Id
     @GeneratedValue
@@ -28,7 +26,7 @@ class User(
     @Column(nullable = false, length = 30, unique = true)
     var nickname: String = nickname
 
-    @Column(nullable = false, length = 30, unique = true)
+    @Column(nullable = false, length = 30)
     var username: String = username
 
     @Column(nullable = false, length = 255)
@@ -55,14 +53,6 @@ class User(
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     var status: UserStatus = UserStatus.ACTIVE
-
-    @Column(nullable = false)
-    @CreationTimestamp
-    var createdAt: OffsetDateTime? = null
-
-    @Column(nullable = false)
-    @UpdateTimestamp
-    var updatedAt: OffsetDateTime? = null
 
     @OneToMany(mappedBy = "user")
     var posts: List<Post> = ArrayList<Post>()

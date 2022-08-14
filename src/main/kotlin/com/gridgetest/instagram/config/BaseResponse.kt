@@ -9,7 +9,7 @@ class BaseResponse<T> {
     @JsonProperty("message")
     private val message: String
     @JsonProperty("code")
-    private val code: Int
+    private val code: String
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("data")
